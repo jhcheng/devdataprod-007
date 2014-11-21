@@ -8,18 +8,21 @@ output: slidy_presentation
 
 ## Shiny Application: S&P 500 Stock Analysis
 
-- Get Stock Price from Yahoo Finance
+- Get Stock Price from [Yahoo Finance](http://finance.yahoo.com/)
 - Can choose date range
 - Support 3 types of data range: *daily*, *weekly*, *monthly*
 - Hide/Show Volume data
-- Implement 4 common technical analysis index: **Simple Moving Average**, **Weighted Moving Average**, **Exponential Moving Average** and **Bollinger Bands**
-- Integrate with Highchart: a popular open source charting library for financial data
+- Implement 4 common technical analysis index: 
+    + **Simple Moving Average**
+    + **Weighted Moving Average**
+    + **Exponential Moving Average** 
+    + **Bollinger Bands**
+- Integrate with *[Highcharts](http://www.highcharts.com/)*: a popular open source charting library for financial data
 - Display calaulation results on Chart
 
-## Why Use HighChart
-
+## Why Use HighCharts
 - Good support in **OHLC Chart**
-- Can integrate with rChart
+- Integrate with rChart
 - Based on the work of [Highstock-rCharts-hack](https://github.com/nemonominem/Highstock-rCharts-hack)
 - Some enhancement:
     * Refactor 2 functions(ohlcvPlot and ohlcPlot) into 1 function(ohlcPlot)

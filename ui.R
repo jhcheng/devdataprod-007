@@ -17,38 +17,56 @@ tas <- c("Simple Moving Average" = "SMA",
          "Exponential Moving Average" = "EMA",
          "Bollinger Bands" = "BOL")
 
-shinyUI(pageWithSidebar(
-  
+shinyUI(fluidPage(
+  tags$head(
+    tags$style(HTML("
+      .row-fluid .span4 {
+          width: 15%;
+      }
+      .row-fluid .span8 {
+        width: 80%;
+      }
+      .tab-content {
+      }
+    "))
+  ),  
   # Application title
-  headerPanel("S&P 500 Stock Analysis"),
-  
+  titlePanel("S&P 500 Stock Analysis"),
   # Sidebar with a slider input for number of bins
-  sidebarPanel(
-    selectizeInput("symbol", "Symbol:", choices=choices, width='100%'),
-    dateRangeInput("daterange", "Date range:", start = Sys.Date()-365, end = Sys.Date()),
-    radioButtons("g", "",
-                 c("Daily" = "d",
-                   "Weekly" = "w",
-                   "Monthly" = "m")),
-    checkboxInput("v", "Show Volume", FALSE)
-  ),
-  
-  # Show a plot of the generated distribution
-  mainPanel(
-    tags$head(tags$style(".selectize-input {overflow: visible;}")),
-    splitLayout(
-      cellWidths = c("40%", "60%"),
-      cellArgs = list(style = "overflow:visible"),
-      selectizeInput("ta", "Technical Analysis", 
-                     choices = tas,
-                     options = list(
-                       placeholder = 'Please select ......',
-                       onInitialize = I('function() { this.setValue(""); }')                       
-                       )),
-      wellPanel(
-        withMathJax(),
-        uiOutput("ui"))
-    ),
-    showOutput("pricePlot", "highstock")
-  )
+  navlistPanel("",
+               tabPanel("CHART",
+                        sidebarLayout(
+                          sidebarPanel(
+                            selectizeInput("symbol", "Symbol:", choices=choices, width='100%'),
+                            dateRangeInput("daterange", "Date range:", start = Sys.Date()-365, end = Sys.Date()),
+                            radioButtons("g", "",
+                                         c("Daily" = "d",
+                                           "Weekly" = "w",
+                                           "Monthly" = "m")),
+                            checkboxInput("v", "Show Volume", FALSE)
+                          ),
+                          
+                          # Show a plot of the generated distribution
+                          mainPanel(
+                            tags$head(tags$style(".selectize-input {overflow: visible;}")),
+                            splitLayout(
+                              cellWidths = c("40%", "60%"),
+                              cellArgs = list(style = "overflow:visible"),
+                              selectizeInput("ta", "Technical Analysis", 
+                                             choices = tas,
+                                             options = list(
+                                               placeholder = 'Please select ......',
+                                               onInitialize = I('function() { this.setValue(""); }')                       
+                                             )),
+                              wellPanel(
+                                withMathJax(),
+                                uiOutput("ui"))
+                            ),
+                            showOutput("pricePlot", "highstock")
+                          )                          
+                        )),
+               tabPanel("DOCUMENT",
+                        includeHTML("www/help.html")
+               )
+               ) 
 ))

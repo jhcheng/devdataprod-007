@@ -1,0 +1,92 @@
+---
+title: "Shiny Application Presentation"
+subtitle: "S&P 500 Stock Analysis"
+author: "Horace Cheng"
+widgets: [mathjax]
+output: slidy_presentation
+---
+
+## Shiny Application: S&P 500 Stock Analysis
+
+- Get Stock Price from Yahoo Finance
+- Can choose date range
+- Support 3 types of data range: *daily*, *weekly*, *monthly*
+- Hide/Show Volume data
+- Implement 4 common technical analysis index: **Simple Moving Average**, **Weighted Moving Average**, **Exponential Moving Average** and **Bollinger Bands**
+- Integrate with Highchart: a popular open source charting library for financial data
+- Display calaulation results on Chart
+
+## Why Use HighChart
+
+- Good support in **OHLC Chart**
+- Can integrate with rChart
+- Based on the work of [Highstock-rCharts-hack](https://github.com/nemonominem/Highstock-rCharts-hack)
+- Some enhancement:
+    * Refactor 2 functions(ohlcvPlot and ohlcPlot) into 1 function(ohlcPlot)
+    * Support add line on OHLC Chart
+
+## Technical Analysis(Moving Average I)
+- **Simple Moving Average** and **Weighted Moving Average**: Reference [Moving average](http://en.wikipedia.org/wiki/Moving_average)
+$$SMA(n)_{M} = \frac{P_{M} + P_{M-1} + ... + P_{M-(n-1)}}{n}$$
+$$WMA(n)_{M} = \frac{nP_{M} + (n-1))P_{M-1} + ... + 2P_{M-(n-2)} + P_{M-(n-1)}}{n + (n-1) + ... + 2 + 1)}$$
+```{r}
+MA <- function(data, step = 20, type = "sma", alpha = 0) {
+  w <- sapply(1:step, function(x) {
+    if (type == "wma") {
+      step - x + 1
+    } else {
+      1
+    }
+  })
+  ma <- data.frame(matrix(NA, nrow = dim(data)[1]-step+1, ncol = 2))
+  colnames(ma) <- c("date", "Close")
+  ma$date <- data[step:dim(data)[1],c("date")]
+  ma$Close <- apply(data[step:dim(data)[1],], 1, function(x) {
+    idx <- which(data$Date == x["Date"])
+    start <- idx-step+1    
+    round(sum(data[start:idx, c("Close")] * w)/sum(w) , 2)
+  })
+  ma
+} 
+```
+
+## Technical Analysis(Moving Average II)
+- **Exponential Moving Average**: Reference [Moving average](http://en.wikipedia.org/wiki/Moving_average)
+$$EMA_{today} = \alpha * P_{today} + (1-\alpha)*EMA_{yesterday}, \alpha = 2/(n+1)$$
+```{r}
+EMA <- function(data, alpha = 1) {
+  rows <- dim(data)[1]
+  ema <- data.frame(matrix(NA, nrow = rows, ncol = 2))
+  colnames(ema) <- c("date", "Close")
+  ema$date <- data[,c("date")]
+  for (i in 1:rows) {
+    price <- data$Close[i]
+    if (i == 1) {
+      ema[i, c("Close")] <- price
+    } else {
+      ema[i, c("Close")] <- alpha * price + (1 - alpha) * ema$Close[i-1]
+    }
+  }
+  ema
+}
+```
+
+## Technical Analysis(Bollinger Bands)
+- Reference [Bollinger Bands](http://en.wikipedia.org/wiki/Bollinger_Bands)
+```{r}
+BollingerBand <- function(data, step = 20, std = 2) {
+  rows <- dim(data)[1]
+  bol <- data.frame(matrix(NA, nrow = rows - step+1, ncol = 4))
+  colnames(bol) <- c("date", "upper", "lower", "ma")
+  bol$date <- data[step:rows,c("date")]
+  bol[,c("upper","lower", "ma")] <- t(sapply(1:(rows-step+1), function(x) {
+     end <- x + step - 1
+     sd_roll <- sd(data[x:end, c("Close")])
+     ma_roll <- mean(data[x:end, c("Close")])
+     c(round(ma_roll + std*sd_roll, 2), 
+       round(ma_roll - std*sd_roll, 2), 
+       round(ma_roll, 2))
+   }))
+  bol
+}
+```

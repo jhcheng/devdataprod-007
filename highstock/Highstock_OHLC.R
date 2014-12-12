@@ -29,7 +29,7 @@ ohlcPlot <- highstockOHLC <- function(name='stock', data=data, type='candlestick
         yIdx = yIdx + 1
         yAxisList[[yIdx]] <- list(title=s$name, height=seriesHeight, replace=F)
         if (!is.null(s$band)) {
-          yAxisList[[yIdx]]$plotBands <- list(from = s$band[1], to = s$band[2])
+          yAxisList[[yIdx]]$plotBands <- list(color = "#FCFFC5", from = s$band[1], to = s$band[2])
         }
       }
       rChart$series(

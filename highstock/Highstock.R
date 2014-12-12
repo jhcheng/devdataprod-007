@@ -67,6 +67,10 @@ Highstock <- setRefClass("Highstock", contains = "rCharts", methods = list(
     params$credits <<- setSpec(params$credits, ..., replace = replace)
   },
   
+  height = function(..., replace = T){
+    params$height <<- setSpec(params$height, ..., replace = replace)
+  },
+  
   exporting = function(..., replace = T){
     params$exporting <<- setSpec(params$exporting, ..., replace = replace)
   },

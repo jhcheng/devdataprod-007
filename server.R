@@ -67,34 +67,40 @@ shinyServer(function(input, output, session) {
             sma <- MA(data, step = as.numeric(input$period))
             series[[1]] <- list(data=sma, type='line', 
                                 name = paste('SMA(',input$period,')', sep=""), 
-                                newColumn=F)
+                                newY=F)
           } else if (selectTA == 'WMA') {
             wma <- MA(data, step = as.numeric(input$period), type="wma")
             series[[1]] <- list(data=wma, type='line', 
                                 name = paste('WMA(',input$period,')', sep=""), 
-                                newColumn=F)            
+                                newY=F)            
           } else if (selectTA == 'EMA') {
             alpha <- 2/(as.numeric(input$period) + 1)
             ema <- EMA(data, alpha)              
             series[[1]] <- list(data=ema, type='line', 
                                 name = paste('EMA(',input$period,',', round(alpha, 4),')', sep=""), 
-                                newColumn=F)              
+                                newY=F)              
           } else if (selectTA == 'BOL') {
             bol <- NULL
+            std <- NULL
             if (is.null(input$std)) {              
-              bol <- BollingerBand(data, step = as.numeric(input$period))
+              std <- 2
+              bol <- BollingerBand(data, step = as.numeric(input$period), std = std)
             } else {
-              bol <- BollingerBand(data, step = as.numeric(input$period), std = as.numeric(input$std))              
+              std <- as.numeric(input$std)
+              bol <- BollingerBand(data, step = as.numeric(input$period), std = std)  
             }
             series[[1]] <- list(data=bol[,c("date", "upper")], type='line', 
                                 name = paste('Upper(+', input$std, ')', sep = ""), 
-                                newColumn=F)            
+                                newY=F)            
             series[[2]] <- list(data=bol[,c("date", "ma")], type='line', 
                                 name = paste('SMA(',input$period,')', sep=""), 
-                                newColumn=F) 
+                                newY=F) 
             series[[3]] <- list(data=bol[,c("date", "lower")], type='line', 
                                 name = paste('Lower(-', input$std, ')', sep = ""), 
-                                newColumn=F) 
+                                newY=F) 
+            series[[4]] <- list(data=bol[,c("date", "bv")], type='line', 
+                                name = paste('BollingerValue', sep = ""), 
+                                newY=T , band = c(-std, std)) 
           }
         }
       }
@@ -181,16 +187,19 @@ EMA <- function(data, alpha = 1) {
 
 BollingerBand <- function(data, step = 20, std = 2) {
   rows <- dim(data)[1]
-  bol <- data.frame(matrix(NA, nrow = rows - step+1, ncol = 4))
-  colnames(bol) <- c("date", "upper", "lower", "ma")
+  bol <- data.frame(matrix(NA, nrow = rows - step+1, ncol = 5))
+  colnames(bol) <- c("date", "upper", "lower", "ma", "bv")
   bol$date <- data[step:rows,c("date")]
-  bol[,c("upper","lower", "ma")] <- t(sapply(1:(rows-step+1), function(x) {
+  bol[,c("upper","lower", "ma", "bv")] <- t(sapply(1:(rows-step+1), function(x) {
      end <- x + step - 1
      sd_roll <- sd(data[x:end, c("Close")])
      ma_roll <- mean(data[x:end, c("Close")])
+     price <- data$Close[x]
      c(round(ma_roll + std*sd_roll, 2), 
        round(ma_roll - std*sd_roll, 2), 
-       round(ma_roll, 2))
+       round(ma_roll, 2),
+       round((price - ma_roll)/sd_roll, 2)
+       )
    }))
   #print(bol)
   bol
